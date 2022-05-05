@@ -1,0 +1,119 @@
+#' aging error analysis
+#'
+#' @param read_tester = looks for a file in the user_input folder, e.g., :"reader_tester.csv"
+#' @param year = year of the assessment
+#' @param admb_home = location admb exists on your computer - if is "c:/admb" can leave NULL
+#' @param rec_age = recruitment age
+#' @param plus_age = max age for modeling
+#' @param max_age = max age for age error analysis - default = 100
+#' @param save = deafult is TRUE
+#'
+#' @return
+#' @export age_error
+#'
+#' @examples ageage(year = 2020, admb_home = NULL, area = "GOA", rec_age = 2, plus_age = 45, max_age = 100)
+#'
+age_error <- function(year, admb_home = NULL, rec_age = 2, plus_age = 45, max_age = 100, save = TRUE){
+
+  # will be a 'user_input' file   
+  rt = ageage::reader_tester
+  
+  # link admb
+  if(is.null(admb_home)){
+    R2admb::setup_admb()
+  } else {
+    R2admb::setup_admb(admb_home)
+  }
+  
+  # count of ages
+  nages = length(rec_age:plus_age)
+  
+  # filter NA & 0 out, compute frequency
+  rt %>%
+    dplyr::filter(Read_Age > 0,
+                  Test_Age > 0,
+                  Final_Age > 0) %>%
+    dplyr::group_by(Test_Age, Read_Age) %>%
+    dplyr::rename_all(tolower) %>%
+    dplyr::summarise(freq = dplyr::n()) -> dat
+  
+  # complete cases, change NA to 0, calculate ape, 
+  expand.grid(test_age = unique(dat$test_age),
+                               read_age = unique(dat$read_age)) %>% 
+    dplyr::left_join(dat) %>%
+    tidyr::replace_na(list(freq = 0)) %>%
+    dplyr::group_by(test_age) %>%
+    dplyr::mutate(num = dplyr::case_when(test_age != read_age ~ freq)) %>%
+    dplyr::summarise(num = sum(num, na.rm = TRUE),
+                     den = sum(freq)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(ape = 1 - (num / den),
+                  ape = ifelse(is.nan(ape), 0, ape)) %>%
+    dplyr::select(age = test_age, ape, ss = den) %>%
+    dplyr::left_join(data.frame(age = min(dat$test_age):max(dat$test_age)), .) %>%
+    tidyr::replace_na(list(ape = -9, ss = -9)) -> dats
+  
+  c("# Number of obs", nrow(dats),
+    "# Age vector", dats$age,
+    "# Percent agreement vector", dats$ape,
+    "# Sample size vector", dats$ss) %>%
+    write.table(here::here(year, "data", "models", "ageage", "ageage.dat"),
+                sep="", quote=F, row.names=F, col.names=F)
+  
+  setwd(here::here(year, "data", "models", "ageage"))
+  R2admb::compile_admb("ageage", verbose = TRUE)
+  R2admb::run_admb("ageage", verbose=TRUE)
+  
+  setwd(here::here())
+  read.delim(here::here(year, "data", "models", "ageage", "ageage.std"), sep="") %>%
+    dplyr::filter(grepl("_a", name)) %>%
+    dplyr::bind_cols(dats) %>%
+    dplyr::select(age, value) -> sds
+  
+  fit = lm(value ~ age, data = sds)
+  
+  # fit out to age 100 (aka: max_age)
+  data.frame(age = rec_age:max_age) %>%
+    dplyr::mutate(ages_sd = predict(fit, .)) -> fits
+  
+  ages = fits$age
+  
+  mtx100 = matrix(nrow = nrow(fits), ncol = nrow(fits))
+  colnames(mtx100) = rownames(mtx100) = ages
+  
+  for(j in 1:nrow(fits)){
+    mtx100[j,1] = pnorm(ages[1] + 0.5,
+                        ages[j],
+                        fits[which(fits[,1] == ages[j]), 2])
+    
+    
+    for(i in 2:(nrow(fits) - 1)){
+      mtx100[j,i] = pnorm(ages[i] + 0.5,
+                          ages[j],
+                          fits[which(fits[,1] == ages[j]), 2]) -
+        pnorm(ages[i-1] + 0.5,
+              ages[j],
+              fits[which(fits[,1] == ages[j]), 2])
+      
+    }
+    mtx100[j,nrow(fits)] = 1 - sum(mtx100[j, 1:(nrow(fits) - 1)])
+  }
+  
+  # Compute ageing error matrix for model
+  ae_Mdl = matrix(nrow=length(ages), ncol=nages)
+  ae_Mdl[, 1:(nages-1)] = as.matrix(mtx100[, 1:(nages-1)])
+  ae_Mdl[, nages] = rowSums(mtx100[, nages:length(ages)])
+  ae_Mdl = round(ae_Mdl, digits=4)
+  r = which(ae_Mdl[, nages]>=0.999)[1]
+  ae_Mdl = ae_Mdl[1:r,]
+  
+  if(isTRUE(save)){
+    write.csv(mtx100, here::here(year, "data", "output", paste0("ae_mtx_", max_age, ".csv")), row.names = FALSE)
+    vroom::vroom_write(fits,  here::here(year,"data", "output", "ae_SD.csv"), ",")
+    vroom::vroom_write(ae_Mdl,  here::here(year, "data", "output", "ae_model.csv"), ",")
+    ae_Mdl
+  } else {
+    list(mtx100 = mtx100, ae_SD = fits, ae_Mdl = aeMdl)
+  }
+  
+}
