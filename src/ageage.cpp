@@ -7,6 +7,9 @@
 #include <admodel.h>
 #include <contrib.h>
 
+#include <Rcpp.h>
+
+
   extern "C"  {
     void ad_boundf(int i);
   }
