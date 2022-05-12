@@ -1,0 +1,2 @@
+c++ -c -std=c++14 -O3 -fPIC -I. -I"/usr/local/admb/include" -I"/usr/local/admb/contrib/include" -osrc/ageage.obj src/ageage.cpp
+c++ -std=c++14 -O3 -shared -osrc/ageage.so src/ageage.obj "/usr/local/admb/lib/libadmb-contrib-shared.a"

@@ -1,0 +1,3 @@
+CXX_STD = CXX14
+PKG_CXXFLAGS =   -w  -O3 -I"/usr/local/admb/include" -I"/usr/local/admb/contrib/include"
+CXX17STD = -std=c++14 
