@@ -10,7 +10,7 @@
   extern "C"  {
     void ad_boundf(int i);
   }
-#include "ageage.hpp"
+#include "../inst/ageage.hpp"
 
 model_data::model_data(int argc,char * argv[]) : ad_comm(argc,argv)
 {
