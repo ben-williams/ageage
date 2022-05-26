@@ -130,6 +130,29 @@ void model_parameters::final_calcs(void){}
 
   long int arrmblsize=0;
 
+int RunModel(){
+    int argc;
+    char * argv[];
+    ad_set_new_handler();
+    ad_exit=&ad_boundf;
+    gradient_structure::set_NUM_DEPENDENT_VARIABLES(5000);
+    gradient_structure::set_NO_DERIVATIVES();
+#ifdef DEBUG
+  #ifndef __SUNPRO_C
+std::feclearexcept(FE_ALL_EXCEPT);
+  #endif
+#endif
+    gradient_structure::set_YES_SAVE_VARIABLES_VALUES();
+    if (!arrmblsize) arrmblsize=15000000;
+    model_parameters mp(arrmblsize,argc,argv);
+    
+    mp.arrmblsize = arrmblsize;
+    mp.iprint=10;
+    mp.preliminary_calculations();
+    mp.computations(argc,argv);
+    
+}
+
 int main(int argc,char * argv[])
 {
     ad_set_new_handler();

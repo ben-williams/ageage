@@ -8,6 +8,7 @@ class model_data : public ad_comm{
   data_vector n;
   ~model_data();
   model_data(int argc,char * argv[]);
+    model_data();//created for r interface
   friend class model_parameters;
 };
 
@@ -44,7 +45,7 @@ public:
   {
     return *objective_function_value::pobjfun;
   }
-private:
+public:
   ivector integer_control_flags;
   dvector double_control_flags;
   param_init_number sigma1;
@@ -59,11 +60,12 @@ private:
   param_number prior_function_value;
   param_number likelihood_function_value;
   objective_function_value f;
-public:
+
   virtual void userfunction(void);
   virtual void report(const dvector& gradients);
   virtual void final_calcs(void);
   model_parameters(int sz,int argc, char * argv[]);
+    model_parameters();//created for R interface
   virtual void initializationfunction(void);
   void get_A_SD_est(void);
   void evaluate_the_objective_function(void);
