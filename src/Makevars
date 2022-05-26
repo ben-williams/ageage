@@ -1,3 +1,4 @@
 CXX_STD = CXX14
 PKG_CXXFLAGS =   -w  -O3 -I"/usr/local/admb/include" -I"/usr/local/admb/contrib/include"
+PKG_LIBS= "/usr/local/admb/lib/libadmb.a"  "/usr/local/admb/lib/libadmb-contrib.a"
 CXX17STD = -std=c++14 
