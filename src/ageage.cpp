@@ -166,6 +166,7 @@ public:
 
 
         std::vector<const char* > new_argv;
+
         int argc = new_argv.size();
         if (argv.isNotNull()) {
             //parse arguments
@@ -175,7 +176,10 @@ public:
                 std::string temp = Rcpp::as<std::string>(arg_v[i]);
                 new_argv.push_back(temp.c_str());
             }
+        } else {
+            new_argv.push_back(tmp);
         }
+
         //initialize admb
         ad_set_new_handler();
         ad_exit = &ad_boundf;
