@@ -1,7 +1,11 @@
-library(Rcpp)
 library(ageage)
-ageage <- Rcpp::Module("ageage", PACKAGE = "ageage")
+library(Rcpp)
+ageage<-Rcpp::Module("ageage", PACKAGE="ageage")
 
-interface<-new(ageage$AgeAgeInterface)
-interface$sigma1<-10
-interface$sigma2<-2
+model<-new(ageage$AgeAgeInterface)
+model$nobs<-10
+model$age<-c(1,2,3,4,5,6,7,8,9,10)
+model$ape<-c(1,2,3,4,5,6,7,8,9,10)
+model$n<-c(1,2,3,4,5,6,7,8,9,10)
+argv<-c("")
+model$Run(argv)
