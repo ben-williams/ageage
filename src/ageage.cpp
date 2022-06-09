@@ -4,32 +4,29 @@
 #include <cstdlib>
 #endif
 #endif
+
 #include <admodel.h>
 #include <contrib.h>
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
-#include "../inst/rinterface.hpp"
+//#include "../inst/rinterface.hpp"
 #include "../inst/ageage.hpp"
+#include <Rcpp.h>
 
 model_data::model_data(int argc, char * argv[]) : ad_comm(argc, argv) {
-    
-    ad_comm::change_datafile_name("ageage.dat");//added for ageage R package
+
+    ad_comm::change_datafile_name("ageage.dat"); //added for ageage R package
     nobs.allocate("nobs");
     age.allocate(1, nobs, "age");
     ape.allocate(1, nobs, "ape");
     n.allocate(1, nobs, "n");
 }
 
-
-
 void model_parameters::initializationfunction(void) {
-    std::cout<<"setting initial values...."<<std::endl;
     sigma1.set_initial_value(0.5);
     sigma2.set_initial_value(5);
 }
-
-
 
 model_parameters::model_parameters(int sz, int argc, char * argv[]) :
 model_data(argc, argv), function_minimizer(sz) {
@@ -143,11 +140,11 @@ public:
     double sigma1 = 0.565656;
     double sigma2 = 5.0;
 
-    void Run(Rcpp::CharacterVector argv) {
+    void Run(Rcpp::Nullable<Rcpp::CharacterVector> argv = R_NilValue) {
 
         char tmp[256];
         getcwd(tmp, 256);
-        
+
         //create data file
         std::stringstream ss;
         std::cout << "Current working directory: " << tmp << std::endl;
@@ -168,14 +165,17 @@ public:
         dat.close();
 
 
-        //parse arguments
-        int argc = argv.size();
         std::vector<const char* > new_argv;
-        for (int i = 0; i < argc; i++) {
-            std::string temp = Rcpp::as<std::string>(argv[i]);
-            new_argv.push_back(temp.c_str());
+        int argc = new_argv.size();
+        if (argv.isNotNull()) {
+            //parse arguments
+            Rcpp::CharacterVector arg_v(argv);
+            argc = arg_v.size();
+            for (int i = 0; i < argc; i++) {
+                std::string temp = Rcpp::as<std::string>(arg_v[i]);
+                new_argv.push_back(temp.c_str());
+            }
         }
-
         //initialize admb
         ad_set_new_handler();
         ad_exit = &ad_boundf;
@@ -185,15 +185,16 @@ public:
         gradient_structure::set_YES_SAVE_VARIABLES_VALUES();
         if (!arrmblsize) arrmblsize = 15000000;
         model_parameters mp(arrmblsize, argc, const_cast<char**> (new_argv.data()));
+
         mp.iprint = 10;
-//        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
-//        mp.sigma1.set_initial_value(this->sigma1);
-//        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
-//        std::cout<<"sigma1 "<<this->sigma1<<"\n";
-//        mp.sigma2.set_initial_value(this->sigma2);;
+        //        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
+        //        mp.sigma1.set_initial_value(this->sigma1);
+        //        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
+        //        std::cout<<"sigma1 "<<this->sigma1<<"\n";
+        //        mp.sigma2.set_initial_value(this->sigma2);;
         mp.preliminary_calculations();
         mp.computations(argc, const_cast<char**> (new_argv.data()));
-        
+
 
     }
 
