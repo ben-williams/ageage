@@ -6,8 +6,8 @@ ageage.hpp
 
 ageage.cpp
 1. moved ageage.cpp to src directory
-2. added preprocessor derective for file separator
-3. added #include "../inst/ageage.hp" to line 23
+2. added preprocessor derective for platform specific file separator
+3. added #include "../inst/ageage.hpp" to line 23
 4. added #include <Rcpp.h> to line 24
 5. added ad_comm::change_datafile_name("ageage.dat"); to line 28
 6. created AgeAgeInterface class on 145
