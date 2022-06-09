@@ -1,0 +1,4 @@
+CXX_STD = CXX14
+PKG_CXXFLAGS =   -w  -O3 -I"%ADMB_HOME%"\include -I"%ADMB_HOME%"\contrib\include
+PKG_LIBS= "%ADMB_HOME%"\lib\admb.lib  "%ADMB_HOME%"\contrib\lib\contribo.lib
+CXX17STD = -std=c++14 
