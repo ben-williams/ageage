@@ -1,0 +1,28 @@
+
+
+ageage.hpp
+1. renamed ageage.htp to ageage.hpp
+2. moved ageage.hpp to inst directory  
+
+ageage.cpp
+1. moved ageage.cpp to src directory
+2. added preprocessor derective for file separator
+3. added #include "../inst/ageage.hp" to line 23
+4. added #include <Rcpp.h> to line 24
+5. added ad_comm::change_datafile_name("ageage.dat"); to line 28
+6. created AgeAgeInterface class on 145
+7. added data objects to AgeAgeInterface lines 150-152
+8. created the Run function in AgeAgeInterface on line 163
+9. defined the ageage Rcpp modelue on lines 240-252
+
+DESCRIPTION
+1. added LinkingTo: Rcpp 
+
+NAMESPACE
+1. added useDynLib(ageage, .registration=TRUE)
+2. added importFrom(Rcpp, evalCpp)
+
+
+A working example can be found in test/test.R
+
+

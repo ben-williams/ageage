@@ -5,6 +5,15 @@
 #endif
 #endif
 
+
+
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
+#define FILE_SEPARATOR "\"
+#else
+#define FILE_SEPARATOR "/"
+#endif
+
+
 #include <admodel.h>
 #include <contrib.h>
 #include <unistd.h>
@@ -135,7 +144,7 @@ extern unsigned int _stack = 10000U;
  */
 class AgeAgeInterface {
 public:
-    
+
     //data section
     int nobs;
     Rcpp::NumericVector age;
@@ -146,7 +155,6 @@ public:
     double sigma1 = 0.5;
     double sigma2 = 5.0;
 
-    
     /**
      * Writes input and instantiates the ageage model.
      * 
@@ -160,9 +168,9 @@ public:
 
         //create ageage.dat data file
         std::stringstream ss;
-        ss << tmp << "/ageage.dat";
+        ss << tmp << FILE_SEPARATOR << "ageage.dat";
         std::ofstream dat(ss.str());
-        
+
         //write data to ageage.dat
         dat << this->nobs << "\n";
         for (int i = 0; i < age.size(); i++) {
@@ -203,24 +211,24 @@ public:
 
         gradient_structure::set_YES_SAVE_VARIABLES_VALUES();
         if (!arrmblsize) arrmblsize = 15000000;
-        
+
         //instantiate our model
         model_parameters mp(arrmblsize, argc, const_cast<char**> (new_argv.data()));
 
         //print iterations
         mp.iprint = 10;
-        
+
         //        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
         //        mp.sigma1.set_initial_value(this->sigma1);
         //        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
         //        std::cout<<"sigma1 "<<this->sigma1<<"\n";
         //        mp.sigma2.set_initial_value(this->sigma2);;
-        
-        
-        
+
+
+
         //do preliminary calculations
         mp.preliminary_calculations();
-        
+
         //fit our model
         mp.computations(argc, const_cast<char**> (new_argv.data()));
 
