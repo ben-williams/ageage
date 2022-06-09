@@ -128,8 +128,14 @@ extern unsigned _stklen = 10000U;
 extern unsigned int _stack = 10000U;
 #endif
 
+/**
+ * 
+ *Rcpp interface from R to ADMB.
+ * 
+ */
 class AgeAgeInterface {
 public:
+    
     //data section
     int nobs;
     Rcpp::NumericVector age;
@@ -137,19 +143,27 @@ public:
     Rcpp::NumericVector n;
 
     //parameter section
-    double sigma1 = 0.565656;
+    double sigma1 = 0.5;
     double sigma2 = 5.0;
 
+    
+    /**
+     * Writes input and instantiates the ageage model.
+     * 
+     * @param argv can be nullable
+     */
     void Run(Rcpp::Nullable<Rcpp::CharacterVector> argv = R_NilValue) {
 
+        //get current working directory
         char tmp[256];
         getcwd(tmp, 256);
 
-        //create data file
+        //create ageage.dat data file
         std::stringstream ss;
-        std::cout << "Current working directory: " << tmp << std::endl;
         ss << tmp << "/ageage.dat";
         std::ofstream dat(ss.str());
+        
+        //write data to ageage.dat
         dat << this->nobs << "\n";
         for (int i = 0; i < age.size(); i++) {
             dat << age[i] << " ";
@@ -165,8 +179,9 @@ public:
         dat.close();
 
 
+        //convert arguments from Rcpp::CharacterVector 
+        //to std::vector<const char*>
         std::vector<const char* > new_argv;
-
         int argc = new_argv.size();
         if (argv.isNotNull()) {
             //parse arguments
@@ -188,17 +203,26 @@ public:
 
         gradient_structure::set_YES_SAVE_VARIABLES_VALUES();
         if (!arrmblsize) arrmblsize = 15000000;
+        
+        //instantiate our model
         model_parameters mp(arrmblsize, argc, const_cast<char**> (new_argv.data()));
 
+        //print iterations
         mp.iprint = 10;
+        
         //        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
         //        mp.sigma1.set_initial_value(this->sigma1);
         //        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
         //        std::cout<<"sigma1 "<<this->sigma1<<"\n";
         //        mp.sigma2.set_initial_value(this->sigma2);;
+        
+        
+        
+        //do preliminary calculations
         mp.preliminary_calculations();
+        
+        //fit our model
         mp.computations(argc, const_cast<char**> (new_argv.data()));
-
 
     }
 
