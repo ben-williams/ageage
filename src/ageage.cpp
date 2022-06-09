@@ -24,6 +24,7 @@ model_data::model_data(int argc, char * argv[]) : ad_comm(argc, argv) {
 
 
 void model_parameters::initializationfunction(void) {
+    std::cout<<"setting initial values...."<<std::endl;
     sigma1.set_initial_value(0.5);
     sigma2.set_initial_value(5);
 }
@@ -139,8 +140,8 @@ public:
     Rcpp::NumericVector n;
 
     //parameter section
-    double sigma1;
-    double sigma2;
+    double sigma1 = 0.565656;
+    double sigma2 = 5.0;
 
     void Run(Rcpp::CharacterVector argv) {
 
@@ -185,6 +186,11 @@ public:
         if (!arrmblsize) arrmblsize = 15000000;
         model_parameters mp(arrmblsize, argc, const_cast<char**> (new_argv.data()));
         mp.iprint = 10;
+//        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
+//        mp.sigma1.set_initial_value(this->sigma1);
+//        std::cout<<"sigma1 "<<mp.sigma1<<"\n";
+//        std::cout<<"sigma1 "<<this->sigma1<<"\n";
+//        mp.sigma2.set_initial_value(this->sigma2);;
         mp.preliminary_calculations();
         mp.computations(argc, const_cast<char**> (new_argv.data()));
         
@@ -196,7 +202,7 @@ public:
 
 RCPP_EXPOSED_CLASS(AgeAgeInterface)
 RCPP_MODULE(ageage) {
-    Rcpp::class_<AgeAgeInterface>("AgeAgeInterface")
+    Rcpp::class_<AgeAgeInterface>("AgeAgeModel")
             .constructor()
             .field("nobs", &AgeAgeInterface::nobs)
             .field("age", &AgeAgeInterface::age)
